@@ -34,33 +34,36 @@ func convertToDefault(oValue reflect.Value) error {
 		}
 		switch f.Kind() {
 		case reflect.String:
-			if defaultValue == "$uuid" {
-				f.SetString(genUUID())
-			}
 			if f.String() == "" {
-				f.SetString(defaultValue)
-			}
-		case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int8:
-			if strings.Contains(defaultValue, "$range") {
-				if x, err := rangeIt(defaultValue); err != nil {
-					return err
+				if defaultValue == "$uuid" {
+					f.SetString(genUUID())
 				} else {
-					f.SetInt(x)
-					continue
+					f.SetString(defaultValue)
 				}
 			}
-			if defaultValue == "$timeNowUnix" {
-				f.SetInt(time.Now().Unix())
-				continue
-			}
-			if defaultValue == "$timeNowUnixNano" {
-				f.SetInt(time.Now().UnixNano())
-				continue
-			}
-			if x, err := strconv.ParseInt(defaultValue, 10, 0); err == nil && f.Int() == 0 {
-				f.SetInt(x)
-			} else {
-				return err
+		case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int8:
+			if f.Int() == 0 {
+				if strings.Contains(defaultValue, "$range") {
+					if x, err := rangeIt(defaultValue); err != nil {
+						return err
+					} else {
+						f.SetInt(x)
+						continue
+					}
+				}
+				if defaultValue == "$timeNowUnix" {
+					f.SetInt(time.Now().Unix())
+					continue
+				}
+				if defaultValue == "$timeNowUnixNano" {
+					f.SetInt(time.Now().UnixNano())
+					continue
+				}
+				if x, err := strconv.ParseInt(defaultValue, 10, 0); err == nil {
+					f.SetInt(x)
+				} else {
+					return err
+				}
 			}
 		case reflect.Float32, reflect.Float64:
 			if x, err := strconv.ParseFloat(defaultValue, 10); err == nil && f.Float() == 0 {
